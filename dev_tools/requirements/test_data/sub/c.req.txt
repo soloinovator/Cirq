@@ -1,3 +1,5 @@
 # c is included
 # this one has no new line at the end
 c
+ipython>=7.16.3 # not directly required, pinned by Snyk to avoid a vulnerability
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
