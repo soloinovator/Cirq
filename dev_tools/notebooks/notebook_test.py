@@ -19,6 +19,7 @@
 # main focus and it is executed in a shared virtual environment for the notebooks. Thus, these
 # tests ensure that notebooks are still working with the latest version of cirq.
 
+import importlib.metadata
 import os
 import sys
 import tempfile
@@ -35,9 +36,13 @@ SKIP_NOTEBOOKS = [
     '**/ionq/*.ipynb',
     '**/pasqal/*.ipynb',
     '**/rigetti/*.ipynb',
+    # skipp cirq-ft notebooks since they are included in individual tests
+    'cirq-ft/**',
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     'examples/*fidelity*',
+    # skipping quantum utility simulation (too large)
+    'examples/advanced/*quantum_utility*',
     # tutorials that use QCS and arent skipped due to one or more cleared output cells
     'docs/tutorials/google/identifying_hardware_changes.ipynb',
     'docs/tutorials/google/echoes.ipynb',
@@ -58,23 +63,22 @@ def require_packages_not_changed():
 
     Raise AssertionError if the pre-existing set of Python packages changes in any way.
     """
-    # TODO: remove this after deprecation of Python 3.7
-    if sys.version_info < (3, 8, 0):
-        return
-    import importlib.metadata
-
     packages_before = set((d.name, d.version) for d in importlib.metadata.distributions())
     yield
     packages_after = set((d.name, d.version) for d in importlib.metadata.distributions())
     assert packages_after == packages_before
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def env_with_temporary_pip_target():
     """Setup system environment that tells pip to install packages to a temporary directory."""
     with tempfile.TemporaryDirectory(suffix='-notebook-site-packages') as tmpdirname:
+        # Note: We need to append tmpdirname to the PYTHONPATH, because PYTHONPATH may
+        # already point to the development sources of Cirq (as happens with check/pytest).
+        # Should some notebook pip-install a stable version of Cirq to tmpdirname,
+        # it would appear in PYTHONPATH after the development Cirq.
         pythonpath = (
-            f'{tmpdirname}{os.pathsep}{os.environ["PYTHONPATH"]}'
+            f'{os.environ["PYTHONPATH"]}{os.pathsep}{tmpdirname}'
             if 'PYTHONPATH' in os.environ
             else tmpdirname
         )
@@ -83,8 +87,9 @@ def env_with_temporary_pip_target():
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
 @pytest.mark.parametrize("notebook_path", filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS))
-def test_notebooks_against_released_cirq(
+def test_notebooks_against_cirq_head(
     notebook_path, require_packages_not_changed, env_with_temporary_pip_target
 ):
     """Test that jupyter notebooks execute.

@@ -201,6 +201,8 @@ def test_default_validation_and_inverse():
     assert i**-1 == t
     assert t**-1 == i
     assert cirq.decompose(i) == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
+    assert [*i._decompose_()] == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
+    assert [*i.gate._decompose_([a, b])] == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(i), cirq.unitary(t).conj().T, atol=1e-8
     )
@@ -354,7 +356,7 @@ def test_gate_shape_protocol():
 def test_operation_shape():
     class FixedQids(cirq.Operation):
         def with_qubits(self, *new_qids):
-            raise NotImplementedError  # coverage: ignore
+            raise NotImplementedError  # pragma: no cover
 
     class QubitOp(FixedQids):
         @property
@@ -618,6 +620,7 @@ def test_tagged_operation_forwards_protocols():
     np.testing.assert_equal(cirq.unitary(tagged_h), cirq.unitary(h))
     assert cirq.has_unitary(tagged_h)
     assert cirq.decompose(tagged_h) == cirq.decompose(h)
+    assert [*tagged_h._decompose_()] == cirq.decompose(h)
     assert cirq.pauli_expansion(tagged_h) == cirq.pauli_expansion(h)
     assert cirq.equal_up_to_global_phase(h, tagged_h)
     assert np.isclose(cirq.kraus(h), cirq.kraus(tagged_h)).all()
@@ -784,9 +787,9 @@ def test_tagged_act_on():
             pass
 
     q = cirq.LineQubit(1)
-    from cirq.protocols.act_on_protocol_test import DummySimulationState
+    from cirq.protocols.act_on_protocol_test import ExampleSimulationState
 
-    args = DummySimulationState()
+    args = ExampleSimulationState()
     cirq.act_on(YesActOn()(q).with_tags("test"), args)
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(NoActOn()(q).with_tags("test"), args)
@@ -795,11 +798,11 @@ def test_tagged_act_on():
 
 
 def test_single_qubit_gate_validates_on_each():
-    class Dummy(cirq.testing.SingleQubitGate):
+    class Example(cirq.testing.SingleQubitGate):
         def matrix(self):
             pass
 
-    g = Dummy()
+    g = Example()
     assert g.num_qubits() == 1
 
     test_qubits = [cirq.NamedQubit(str(i)) for i in range(3)]

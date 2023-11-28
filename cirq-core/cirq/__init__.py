@@ -224,6 +224,7 @@ from cirq.ops import (
     givens,
     GlobalPhaseGate,
     global_phase_operation,
+    GreedyQubitManager,
     H,
     HPowGate,
     I,
@@ -284,6 +285,7 @@ from cirq.ops import (
     qft,
     Qid,
     QuantumFourierTransformGate,
+    QubitManager,
     QubitOrder,
     QubitOrderOrList,
     QubitPermutationGate,
@@ -300,6 +302,7 @@ from cirq.ops import (
     ry,
     rz,
     S,
+    SimpleQubitManager,
     SingleQubitCliffordGate,
     SingleQubitPauliStringGateOperation,
     SQRT_ISWAP,
@@ -355,6 +358,7 @@ from cirq.transformers import (
     is_negligible_turn,
     LineInitialMapper,
     MappingManager,
+    map_clean_and_borrowable_qubits,
     map_moments,
     map_operations,
     map_operations_and_unroll,
@@ -369,7 +373,9 @@ from cirq.transformers import (
     optimize_for_target_gateset,
     parameterized_2q_op_to_sqrt_iswap_operations,
     prepare_two_qubit_state_using_cz,
+    prepare_two_qubit_state_using_iswap,
     prepare_two_qubit_state_using_sqrt_iswap,
+    quantum_shannon_decomposition,
     RouteCQC,
     routed_circuit_with_mapping,
     SqrtIswapTargetGateset,
@@ -435,6 +441,7 @@ from cirq.qis import (
 
 from cirq.sim import (
     CIRCUIT_LIKE,
+    ClassicalStateSimulator,
     CliffordSimulator,
     CliffordState,
     CliffordSimulatorStepResult,
@@ -502,6 +509,7 @@ from cirq.study import (
     Result,
     UnitSweep,
     Zip,
+    ZipLongest,
 )
 
 from cirq.value import (
@@ -565,6 +573,7 @@ from cirq.protocols import (
     decompose,
     decompose_once,
     decompose_once_with_qubits,
+    DecompositionContext,
     DEFAULT_RESOLVERS,
     definitely_commutes,
     equal_up_to_global_phase,

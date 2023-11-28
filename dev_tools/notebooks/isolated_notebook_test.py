@@ -23,10 +23,11 @@
 # This can take a long time and even lead to timeout on Github Actions, hence partitioning of the
 # tests is possible, via setting the NOTEBOOK_PARTITIONS env var to e.g. 5, and then passing to
 # pytest the `-k partition-0` or `-k partition-1`, etc. argument to limit to the given partition.
+
 import os
 import re
 import subprocess
-import sys
+import shutil
 import warnings
 from typing import Set, List
 
@@ -62,12 +63,17 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
 SKIP_NOTEBOOKS = [
+    # TODO(#6088) - enable notebooks below
+    'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
+    # End of TODO(#6088)
     # skipping vendor notebooks as we don't have auth sorted out
     "**/aqt/*.ipynb",
     "**/azure-quantum/*.ipynb",
     "**/google/*.ipynb",
     "**/ionq/*.ipynb",
     "**/pasqal/*.ipynb",
+    # skipp cirq-ft notebooks since they are included in individual tests
+    'cirq-ft/**',
     # Rigetti uses local simulation with docker, so should work
     # if you run into issues locally, run
     # `docker compose -f cirq-rigetti/docker-compose.test.yaml up`
@@ -75,16 +81,14 @@ SKIP_NOTEBOOKS = [
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     "examples/*fidelity*",
+    # skipping quantum utility simulation (too large)
+    'examples/advanced/*quantum_utility*',
     # Also skipping stabilizer code testing.
     "examples/*stabilizer_code*",
     # An intentionally empty/template code notebook.
     "docs/simulate/qvm_builder_code.ipynb",
     *NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES,
 ]
-
-# The Rigetti integration requires Python >= 3.7.
-if sys.version_info < (3, 7):
-    SKIP_NOTEBOOKS.append("**/rigetti/*.ipynb")
 
 # As these notebooks run in an isolated env, we want to minimize dependencies that are
 # installed. We assume colab packages (feel free to add dependencies here that appear in colab, as
@@ -96,16 +100,6 @@ PACKAGES = [
     "jupyter",
     # assumed to be part of colab
     "seaborn~=0.11.1",
-    # https://github.com/nteract/papermill/issues/519
-    'ipykernel==5.3.4',
-    # https://github.com/ipython/ipython/issues/12941
-    'ipython==7.22',
-    # to ensure networkx works nicely
-    # https://github.com/networkx/networkx/issues/4718 pinned networkx 2.5.1 to 4.4.2
-    # however, jupyter brings in 5.0.6
-    'decorator<5',
-    # TODO(#5967): allow numpy-1.24 when it is supported in Cirq and numba
-    'numpy>=1.16,<1.24',
 ]
 
 
@@ -195,6 +189,7 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
             f"dev_tools/notebooks/isolated_notebook_test.py."
         )
     os.remove(rewritten_notebook_path)
+    shutil.rmtree(notebook_env)
 
 
 @pytest.mark.slow
@@ -228,9 +223,6 @@ def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_en
     See `test_changed_notebooks_against_released_cirq` for more details on
     notebooks execution.
     """
-    # TODO(#6037,pavoljuhas) - remove after confirming we get error reports from the CI
-    if notebook_path.endswith('/circuits.ipynb'):
-        assert False, 'intentional failure to simulate CI-weekly run with failed test'
     _rewrite_and_run_notebook(notebook_path, cloned_env)
 
 

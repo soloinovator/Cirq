@@ -117,7 +117,7 @@ def _stratify_circuit(
     num_classes = len(classifiers) + 1  # include one "extra" category for ignored operations
     new_moments: List[List['cirq.Operation']] = []
 
-    # Keep track of the the latest time index for each qubit, measurement key, and control key.
+    # Keep track of the latest time index for each qubit, measurement key, and control key.
     qubit_time_index: Dict['cirq.Qid', int] = {}
     measurement_time_index: Dict['cirq.MeasurementKey', int] = {}
     control_time_index: Dict['cirq.MeasurementKey', int] = {}
@@ -130,7 +130,6 @@ def _stratify_circuit(
         ignored_ops = []
         op_time_indices = {}
         for op in moment:
-
             # Identify the earliest moment that can accommodate this op.
             min_time_index_for_op = circuits.circuit.get_earliest_accommodating_moment_index(
                 op, qubit_time_index, measurement_time_index, control_time_index
@@ -183,9 +182,9 @@ def _get_classifiers(
     - Exhaustive, meaning every operation in the circuit is classified by at least one classifier.
     - Minimal, meaning unused classifiers are forgotten.
     """
-    # Convert all categories into classifiers, and make the list exhaustive by adding a dummy
-    # classifier for otherwise unclassified ops.
-    classifiers = [_category_to_classifier(cat) for cat in categories] + [_dummy_classifier]
+    # Convert all categories into classifiers, and make the list exhaustive by
+    # adding an example classifier for otherwise unclassified ops.
+    classifiers = [_category_to_classifier(cat) for cat in categories] + [_mock_classifier]
 
     # Figure out which classes are actually used in the circuit.
     class_is_used = [False for _ in classifiers]
@@ -222,21 +221,21 @@ def _category_to_classifier(category) -> Classifier:
         )
 
 
-def _dummy_classifier(op: 'cirq.Operation') -> bool:
-    """Dummy classifier, used to "complete" a collection of classifiers and make it exhaustive."""
-    return False  # coverage: ignore
+def _mock_classifier(op: 'cirq.Operation') -> bool:
+    """Mock classifier, used to "complete" a collection of classifiers and make it exhaustive."""
+    return False  # pragma: no cover
 
 
 def _get_op_class(op: 'cirq.Operation', classifiers: Sequence[Classifier]) -> int:
     """Get the "class" of an operator, by index."""
     for class_index, classifier in enumerate(classifiers):
-        if classifier is _dummy_classifier:
-            dummy_classifier_index = class_index
+        if classifier is _mock_classifier:
+            mock_classifier_index = class_index
         elif classifier(op):
             return class_index
     # If we got this far, the operation did not match any "actual" classifier,
-    # so return the index of the dummy classifer.
+    # so return the index of the mock classifer.
     try:
-        return dummy_classifier_index
+        return mock_classifier_index
     except NameError:
         raise ValueError(f"Operation {op} not identified by any classifier")

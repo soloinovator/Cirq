@@ -14,7 +14,8 @@
 
 import abc
 import enum
-from typing import Dict, List, Mapping, Optional, Sequence, Tuple, TYPE_CHECKING, TypeVar
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing_extensions import Self
 
 from cirq.value import digits, value_equality_attr
 
@@ -38,10 +39,7 @@ class MeasurementType(enum.IntEnum):
     CHANNEL = 2
 
     def __repr__(self):
-        return f'cirq.{str(self)}'
-
-
-TSelf = TypeVar('TSelf', bound='ClassicalDataStoreReader')
+        return f'cirq.MeasurementType.{self.name}'
 
 
 class ClassicalDataStoreReader(abc.ABC):
@@ -101,7 +99,7 @@ class ClassicalDataStoreReader(abc.ABC):
         """
 
     @abc.abstractmethod
-    def copy(self: TSelf) -> TSelf:
+    def copy(self) -> Self:
         """Creates a copy of the object."""
 
 
