@@ -1,3 +1,4 @@
 # c is included
 # this one has no new line at the end
 c
+prompt-toolkit>=3.0.13 # not directly required, pinned by Snyk to avoid a vulnerability
