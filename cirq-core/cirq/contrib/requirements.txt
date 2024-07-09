@@ -9,3 +9,4 @@ opt_einsum
 autoray
 # required for py39 opcodes.
 numba>=0.53.0
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
