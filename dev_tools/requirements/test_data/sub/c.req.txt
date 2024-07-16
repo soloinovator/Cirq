@@ -1,3 +1,4 @@
 # c is included
 # this one has no new line at the end
 c
+setuptools>=70.0.0 # not directly required, pinned by Snyk to avoid a vulnerability
