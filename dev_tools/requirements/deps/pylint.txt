@@ -1,0 +1,2 @@
+# for linting
+pylint~=3.3.1
